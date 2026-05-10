@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { AppNav } from "@/components/AppNav";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -72,11 +74,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Stillpath — Calm study, less procrastination" },
+      { name: "description", content: "A calming study companion that helps students break down work, focus deeply, and build healthy habits." },
+      { name: "author", content: "Stillpath" },
+      { property: "og:title", content: "Stillpath — Calm study, less procrastination" },
+      { property: "og:description", content: "Break work into small steps, focus with care, and reduce study anxiety." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -113,7 +115,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="min-h-screen">
+        <AppNav />
+        <main className="mx-auto max-w-6xl px-4 py-8">
+          <Outlet />
+        </main>
+      </div>
+      <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
 }
