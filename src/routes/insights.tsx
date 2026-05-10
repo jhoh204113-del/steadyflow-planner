@@ -86,17 +86,21 @@ function InsightsPage() {
       </section>
 
       <section className="rounded-2xl border border-border/70 bg-gradient-calm p-6 shadow-soft">
-        <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-card text-primary shadow-soft">
-            <Users className="h-5 w-5" />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-card text-primary shadow-soft">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold">Accountability circles</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Join a private circle, see your friends' streaks and XP, and send each other soft nudges.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base font-semibold">Accountability circles · coming soon</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Quietly support a few friends with shared focus goals. No leaderboards, no shaming —
-              just gentle company while you work.
-            </p>
-          </div>
+          <a href="/circles" className="shrink-0 self-center rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-accent">
+            Open circles
+          </a>
         </div>
       </section>
     </div>

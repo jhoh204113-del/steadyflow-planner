@@ -21,15 +21,62 @@ export type FocusSession = {
   assignmentId?: string;
 };
 
+export type QuestKind = "subtasks" | "focus_minutes" | "sessions" | "streak";
+export type Quest = {
+  id: string;
+  title: string;
+  description: string;
+  kind: QuestKind;
+  goal: number;
+  xpReward: number;
+  period: "daily" | "weekly";
+  startedAt: string;
+  claimed: boolean;
+  baseline?: number; // counter snapshot at start (for cumulative kinds)
+};
+
+export type Friend = {
+  id: string;
+  name: string;
+  emoji: string;
+  xp: number;
+  streak: number;
+  todayMinutes: number;
+  lastNudgeAt?: string;
+};
+
+export type Circle = {
+  id: string;
+  name: string;
+  description: string;
+  memberIds: string[]; // friend ids; "me" represents the user
+  joined: boolean;
+  weeklyGoalMinutes: number;
+};
+
+export type Nudge = {
+  id: string;
+  fromId: string; // friend id or "me"
+  toId: string;
+  message: string;
+  at: string;
+  read: boolean;
+};
+
 export type AppState = {
   assignments: Assignment[];
   sessions: FocusSession[];
   xp: number;
   streakDays: number;
   lastActiveDate: string | null;
+  quests: Quest[];
+  questsRolledAt: string | null;
+  friends: Friend[];
+  circles: Circle[];
+  nudges: Nudge[];
 };
 
-const KEY = "calmstudy.state.v1";
+const KEY = "calmstudy.state.v2";
 
 const seed = (): AppState => {
   const now = new Date();
@@ -75,8 +122,83 @@ const seed = (): AppState => {
     xp: 120,
     streakDays: 3,
     lastActiveDate: null,
+    quests: defaultQuests(0),
+    questsRolledAt: new Date().toDateString(),
+    friends: seedFriends(),
+    circles: seedCircles(),
+    nudges: [],
   };
 };
+
+function defaultQuests(subtaskBaseline = 0): Quest[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: crypto.randomUUID(),
+      title: "Tiny start",
+      description: "Complete 3 subtasks today.",
+      kind: "subtasks", goal: 3, xpReward: 30, period: "daily", startedAt: now, claimed: false,
+      baseline: subtaskBaseline,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Gentle focus",
+      description: "Focus 25 minutes today.",
+      kind: "focus_minutes", goal: 25, xpReward: 40, period: "daily", startedAt: now, claimed: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Steady week",
+      description: "Complete 5 focus sessions this week.",
+      kind: "sessions", goal: 5, xpReward: 100, period: "weekly", startedAt: now, claimed: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Showing up",
+      description: "Reach a 5-day streak.",
+      kind: "streak", goal: 5, xpReward: 80, period: "weekly", startedAt: now, claimed: false,
+    },
+  ];
+}
+
+function seedFriends(): Friend[] {
+  return [
+    { id: "f1", name: "Maya",   emoji: "🌿", xp: 340, streak: 6, todayMinutes: 50 },
+    { id: "f2", name: "Leo",    emoji: "🌊", xp: 215, streak: 2, todayMinutes: 15 },
+    { id: "f3", name: "Aiko",   emoji: "🌸", xp: 410, streak: 9, todayMinutes: 75 },
+    { id: "f4", name: "Sam",    emoji: "☕", xp: 95,  streak: 1, todayMinutes: 0  },
+    { id: "f5", name: "Noor",   emoji: "🪴", xp: 280, streak: 4, todayMinutes: 30 },
+  ];
+}
+
+function seedCircles(): Circle[] {
+  return [
+    {
+      id: "c1",
+      name: "Quiet Mornings",
+      description: "Calm study before noon. Soft accountability.",
+      memberIds: ["me", "f1", "f3", "f5"],
+      joined: true,
+      weeklyGoalMinutes: 300,
+    },
+    {
+      id: "c2",
+      name: "Finals Together",
+      description: "We're all preparing — let's keep each other steady.",
+      memberIds: ["f2", "f4"],
+      joined: false,
+      weeklyGoalMinutes: 420,
+    },
+    {
+      id: "c3",
+      name: "Tiny Steps",
+      description: "5-minute starts welcome. No pressure ever.",
+      memberIds: ["f1", "f2", "f4"],
+      joined: false,
+      weeklyGoalMinutes: 180,
+    },
+  ];
+}
 
 let state: AppState = (() => {
   if (typeof window === "undefined") return seed();
@@ -117,6 +239,34 @@ export function useClientStore<T>(selector: (s: AppState) => T, fallback: T): T 
   return mounted ? value : fallback;
 }
 
+function todayStr() { return new Date().toDateString(); }
+function startOfWeek() {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay()); return d.getTime();
+}
+
+function totalDoneSubtasks(s: AppState) {
+  return s.assignments.reduce((n, a) => n + a.subtasks.filter((st) => st.done).length, 0);
+}
+
+export function questProgress(q: Quest, s: AppState): number {
+  if (q.kind === "subtasks") {
+    return Math.max(0, totalDoneSubtasks(s) - (q.baseline ?? 0));
+  }
+  if (q.kind === "focus_minutes") {
+    const today = todayStr();
+    return s.sessions
+      .filter((x) => new Date(x.startedAt).toDateString() === today)
+      .reduce((n, x) => n + x.minutes, 0);
+  }
+  if (q.kind === "sessions") {
+    const since = startOfWeek();
+    return s.sessions.filter((x) => new Date(x.startedAt).getTime() >= since).length;
+  }
+  if (q.kind === "streak") return s.streakDays;
+  return 0;
+}
+
 export const actions = {
   addAssignment(a: Omit<Assignment, "id" | "createdAt" | "subtasks" | "hoursCompleted"> & { subtasks?: Subtask[] }) {
     const assignment: Assignment = {
@@ -131,18 +281,23 @@ export const actions = {
     return assignment;
   },
   toggleSubtask(assignmentId: string, subtaskId: string) {
-    state = {
-      ...state,
-      assignments: state.assignments.map((a) =>
-        a.id !== assignmentId
-          ? a
-          : {
-              ...a,
-              subtasks: a.subtasks.map((s) => (s.id === subtaskId ? { ...s, done: !s.done } : s)),
-            },
-      ),
-    };
+    let nowDone = false;
+    const assignments = state.assignments.map((a) => {
+      if (a.id !== assignmentId) return a;
+      return {
+        ...a,
+        subtasks: a.subtasks.map((s) => {
+          if (s.id !== subtaskId) return s;
+          nowDone = !s.done;
+          return { ...s, done: !s.done };
+        }),
+      };
+    });
+    // Subtasks now grant +5 XP each (capped via quest claims)
+    const xpDelta = nowDone ? 5 : -5;
+    state = { ...state, assignments, xp: Math.max(0, state.xp + xpDelta) };
     emit();
+    return nowDone;
   },
   deleteAssignment(id: string) {
     state = { ...state, assignments: state.assignments.filter((a) => a.id !== id) };
@@ -162,7 +317,6 @@ export const actions = {
       const yesterday = new Date(Date.now() - 86400000).toDateString();
       streak = last === yesterday ? streak + 1 : 1;
     }
-    // XP capped per session to avoid grinding (max 50/session)
     const xpGain = Math.min(50, Math.round(minutes * 1.5));
     state = {
       ...state,
@@ -178,6 +332,73 @@ export const actions = {
     };
     emit();
     return xpGain;
+  },
+  claimQuest(id: string): number {
+    const q = state.quests.find((x) => x.id === id);
+    if (!q || q.claimed) return 0;
+    if (questProgress(q, state) < q.goal) return 0;
+    state = {
+      ...state,
+      xp: state.xp + q.xpReward,
+      quests: state.quests.map((x) => (x.id === id ? { ...x, claimed: true } : x)),
+    };
+    emit();
+    return q.xpReward;
+  },
+  rerollQuestsIfNeeded() {
+    const today = todayStr();
+    if (state.questsRolledAt === today) return;
+    // refresh daily quests, keep weekly until they expire (simple: keep all)
+    const fresh = defaultQuests(totalDoneSubtasks(state));
+    const dailies = fresh.filter((q) => q.period === "daily");
+    const weeklies = state.quests.filter((q) => q.period === "weekly");
+    state = { ...state, quests: [...dailies, ...weeklies], questsRolledAt: today };
+    emit();
+  },
+  joinCircle(id: string) {
+    state = {
+      ...state,
+      circles: state.circles.map((c) =>
+        c.id === id ? { ...c, joined: true, memberIds: c.memberIds.includes("me") ? c.memberIds : ["me", ...c.memberIds] } : c,
+      ),
+    };
+    emit();
+  },
+  createCircle(name: string, description: string) {
+    const c: Circle = {
+      id: crypto.randomUUID(),
+      name, description: description || "Your private space.",
+      memberIds: ["me"], joined: true, weeklyGoalMinutes: 180,
+    };
+    state = { ...state, circles: [c, ...state.circles] };
+    emit();
+    return c;
+  },
+  leaveCircle(id: string) {
+    state = {
+      ...state,
+      circles: state.circles.map((c) =>
+        c.id === id ? { ...c, joined: false, memberIds: c.memberIds.filter((m) => m !== "me") } : c,
+      ),
+    };
+    emit();
+  },
+  sendNudge(toId: string, message: string) {
+    const last = state.friends.find((f) => f.id === toId)?.lastNudgeAt;
+    if (last && Date.now() - new Date(last).getTime() < 30 * 60 * 1000) {
+      return false; // rate-limit nudges to once per 30 min per friend
+    }
+    const n: Nudge = {
+      id: crypto.randomUUID(), fromId: "me", toId, message,
+      at: new Date().toISOString(), read: false,
+    };
+    state = {
+      ...state,
+      nudges: [n, ...state.nudges],
+      friends: state.friends.map((f) => (f.id === toId ? { ...f, lastNudgeAt: n.at } : f)),
+    };
+    emit();
+    return true;
   },
 };
 
