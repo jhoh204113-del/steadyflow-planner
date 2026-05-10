@@ -267,20 +267,8 @@ function NewCircleDialog() {
           className="rounded-xl bg-gradient-primary shadow-glow"
           onClick={() => {
             if (!name.trim()) { toast.error("Add a circle name"); return; }
-            // For this demo, simulate creating a joined circle locally.
-            // Future: backend with invites.
-            const fake = {
-              id: "new-" + Date.now(),
-              name: name.trim(),
-              description: desc.trim() || "Your private space.",
-              memberIds: ["me"],
-              joined: true,
-              weeklyGoalMinutes: 180,
-            };
-            // direct mutation through actions (push as joined via state hack)
-            // simplest: we'll just toast for now in this preview build
-            (window as any).__addCircle?.(fake);
-            toast.success(`Created “${fake.name}” — invite friends soon.`);
+            const c = actions.createCircle(name.trim(), desc.trim());
+            toast.success(`Created “${c.name}” — invite friends soon.`);
             setOpen(false);
             setName(""); setDesc("");
           }}
