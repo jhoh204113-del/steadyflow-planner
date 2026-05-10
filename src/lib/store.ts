@@ -122,7 +122,7 @@ const seed = (): AppState => {
     xp: 120,
     streakDays: 3,
     lastActiveDate: null,
-    quests: defaultQuests(),
+    quests: defaultQuests(0),
     questsRolledAt: new Date().toDateString(),
     friends: seedFriends(),
     circles: seedCircles(),
@@ -349,7 +349,7 @@ export const actions = {
     const today = todayStr();
     if (state.questsRolledAt === today) return;
     // refresh daily quests, keep weekly until they expire (simple: keep all)
-    const fresh = defaultQuests();
+    const fresh = defaultQuests(totalDoneSubtasks(state));
     const dailies = fresh.filter((q) => q.period === "daily");
     const weeklies = state.quests.filter((q) => q.period === "weekly");
     state = { ...state, quests: [...dailies, ...weeklies], questsRolledAt: today };
