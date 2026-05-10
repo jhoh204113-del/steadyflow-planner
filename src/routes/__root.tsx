@@ -78,10 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "A calming study companion that helps students break down work, focus deeply, and build healthy habits." },
       { name: "author", content: "Stillpath" },
       { property: "og:title", content: "Stillpath — Calm study, less procrastination" },
-      { property: "og:description", content: "Break work into small steps, focus with care, and reduce study anxiety." },
+      { property: "og:description", content: "A calming study companion that helps students break down work, focus deeply, and build healthy habits." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Stillpath — Calm study, less procrastination" },
+      { name: "twitter:description", content: "A calming study companion that helps students break down work, focus deeply, and build healthy habits." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/523ae5ee-8fc7-4b36-9c64-2998e4aa475b" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/523ae5ee-8fc7-4b36-9c64-2998e4aa475b" },
     ],
     links: [
       {
