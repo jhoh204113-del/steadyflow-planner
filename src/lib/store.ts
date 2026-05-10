@@ -374,15 +374,6 @@ export const actions = {
     emit();
     return c;
   },
-  _legacy_joinCircle(id: string) {
-    state = {
-      ...state,
-      circles: state.circles.map((c) =>
-        c.id === id ? { ...c, joined: true, memberIds: c.memberIds.includes("me") ? c.memberIds : ["me", ...c.memberIds] } : c,
-      ),
-    };
-    emit();
-  },
   leaveCircle(id: string) {
     state = {
       ...state,
