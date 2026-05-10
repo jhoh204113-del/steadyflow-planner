@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useClientStore } from "@/lib/store";
 import { AssignmentCard } from "@/components/AssignmentCard";
+import { QuestsPanel } from "@/components/QuestsPanel";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Timer, ListChecks } from "lucide-react";
 
