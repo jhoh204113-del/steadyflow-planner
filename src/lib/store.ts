@@ -30,8 +30,9 @@ export type Quest = {
   goal: number;
   xpReward: number;
   period: "daily" | "weekly";
-  startedAt: string; // ISO
+  startedAt: string;
   claimed: boolean;
+  baseline?: number; // counter snapshot at start (for cumulative kinds)
 };
 
 export type Friend = {
@@ -243,15 +244,13 @@ function startOfWeek() {
   d.setDate(d.getDate() - d.getDay()); return d.getTime();
 }
 
+function totalDoneSubtasks(s: AppState) {
+  return s.assignments.reduce((n, a) => n + a.subtasks.filter((st) => st.done).length, 0);
+}
+
 export function questProgress(q: Quest, s: AppState): number {
   if (q.kind === "subtasks") {
-    const today = todayStr();
-    return s.assignments.reduce(
-      (n, a) => n + a.subtasks.filter((st) => st.done && a.createdAt /* always present */ && true).length * 0
-        // we can't track subtask completion time, so approximate via sessions today as a proxy
-      , 0)
-      // actual proxy: count subtasks done across all assignments minus initial seed wouldn't work; use sessions-derived heuristic
-      || s.sessions.filter((x) => new Date(x.startedAt).toDateString() === today).length;
+    return Math.max(0, totalDoneSubtasks(s) - (q.baseline ?? 0));
   }
   if (q.kind === "focus_minutes") {
     const today = todayStr();
