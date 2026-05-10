@@ -118,7 +118,6 @@ const seed = (): AppState => {
       },
     ],
     sessions: [],
-    sessions: [],
     xp: 120,
     streakDays: 3,
     lastActiveDate: null,
