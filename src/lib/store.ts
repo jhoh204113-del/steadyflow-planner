@@ -130,7 +130,7 @@ const seed = (): AppState => {
   };
 };
 
-function defaultQuests(): Quest[] {
+function defaultQuests(subtaskBaseline = 0): Quest[] {
   const now = new Date().toISOString();
   return [
     {
@@ -138,6 +138,7 @@ function defaultQuests(): Quest[] {
       title: "Tiny start",
       description: "Complete 3 subtasks today.",
       kind: "subtasks", goal: 3, xpReward: 30, period: "daily", startedAt: now, claimed: false,
+      baseline: subtaskBaseline,
     },
     {
       id: crypto.randomUUID(),
