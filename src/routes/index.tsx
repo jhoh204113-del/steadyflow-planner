@@ -72,31 +72,35 @@ function Dashboard() {
         <Stat label="XP" value={`${xp}`} hint="Earned through consistency" />
       </section>
 
-      <section>
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Upcoming work</h2>
-            <p className="text-sm text-muted-foreground">Your next steps, broken into kinder pieces.</p>
+      <section className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div>
+          <div className="mb-4 flex items-end justify-between">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">Upcoming work</h2>
+              <p className="text-sm text-muted-foreground">Your next steps, broken into kinder pieces.</p>
+            </div>
+            <Link to="/tasks" className="text-sm font-medium text-primary hover:underline">
+              All tasks <ArrowRight className="inline h-3.5 w-3.5" />
+            </Link>
           </div>
-          <Link to="/tasks" className="text-sm font-medium text-primary hover:underline">
-            All tasks <ArrowRight className="inline h-3.5 w-3.5" />
-          </Link>
+
+          {sorted.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
+              <p className="text-muted-foreground">No assignments yet. Add one and we'll break it down for you.</p>
+              <Button asChild className="mt-4 rounded-xl bg-gradient-primary">
+                <Link to="/tasks">Add your first task</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {sorted.slice(0, 4).map((a) => (
+                <AssignmentCard key={a.id} a={a} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {sorted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
-            <p className="text-muted-foreground">No assignments yet. Add one and we'll break it down for you.</p>
-            <Button asChild className="mt-4 rounded-xl bg-gradient-primary">
-              <Link to="/tasks">Add your first task</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {sorted.slice(0, 6).map((a) => (
-              <AssignmentCard key={a.id} a={a} />
-            ))}
-          </div>
-        )}
+        <QuestsPanel />
       </section>
     </div>
   );
