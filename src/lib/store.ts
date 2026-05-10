@@ -21,15 +21,61 @@ export type FocusSession = {
   assignmentId?: string;
 };
 
+export type QuestKind = "subtasks" | "focus_minutes" | "sessions" | "streak";
+export type Quest = {
+  id: string;
+  title: string;
+  description: string;
+  kind: QuestKind;
+  goal: number;
+  xpReward: number;
+  period: "daily" | "weekly";
+  startedAt: string; // ISO
+  claimed: boolean;
+};
+
+export type Friend = {
+  id: string;
+  name: string;
+  emoji: string;
+  xp: number;
+  streak: number;
+  todayMinutes: number;
+  lastNudgeAt?: string;
+};
+
+export type Circle = {
+  id: string;
+  name: string;
+  description: string;
+  memberIds: string[]; // friend ids; "me" represents the user
+  joined: boolean;
+  weeklyGoalMinutes: number;
+};
+
+export type Nudge = {
+  id: string;
+  fromId: string; // friend id or "me"
+  toId: string;
+  message: string;
+  at: string;
+  read: boolean;
+};
+
 export type AppState = {
   assignments: Assignment[];
   sessions: FocusSession[];
   xp: number;
   streakDays: number;
   lastActiveDate: string | null;
+  quests: Quest[];
+  questsRolledAt: string | null;
+  friends: Friend[];
+  circles: Circle[];
+  nudges: Nudge[];
 };
 
-const KEY = "calmstudy.state.v1";
+const KEY = "calmstudy.state.v2";
 
 const seed = (): AppState => {
   const now = new Date();
