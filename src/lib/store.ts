@@ -118,11 +118,86 @@ const seed = (): AppState => {
       },
     ],
     sessions: [],
+    sessions: [],
     xp: 120,
     streakDays: 3,
     lastActiveDate: null,
+    quests: defaultQuests(),
+    questsRolledAt: new Date().toDateString(),
+    friends: seedFriends(),
+    circles: seedCircles(),
+    nudges: [],
   };
 };
+
+function defaultQuests(): Quest[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: crypto.randomUUID(),
+      title: "Tiny start",
+      description: "Complete 3 subtasks today.",
+      kind: "subtasks", goal: 3, xpReward: 30, period: "daily", startedAt: now, claimed: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Gentle focus",
+      description: "Focus 25 minutes today.",
+      kind: "focus_minutes", goal: 25, xpReward: 40, period: "daily", startedAt: now, claimed: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Steady week",
+      description: "Complete 5 focus sessions this week.",
+      kind: "sessions", goal: 5, xpReward: 100, period: "weekly", startedAt: now, claimed: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Showing up",
+      description: "Reach a 5-day streak.",
+      kind: "streak", goal: 5, xpReward: 80, period: "weekly", startedAt: now, claimed: false,
+    },
+  ];
+}
+
+function seedFriends(): Friend[] {
+  return [
+    { id: "f1", name: "Maya",   emoji: "🌿", xp: 340, streak: 6, todayMinutes: 50 },
+    { id: "f2", name: "Leo",    emoji: "🌊", xp: 215, streak: 2, todayMinutes: 15 },
+    { id: "f3", name: "Aiko",   emoji: "🌸", xp: 410, streak: 9, todayMinutes: 75 },
+    { id: "f4", name: "Sam",    emoji: "☕", xp: 95,  streak: 1, todayMinutes: 0  },
+    { id: "f5", name: "Noor",   emoji: "🪴", xp: 280, streak: 4, todayMinutes: 30 },
+  ];
+}
+
+function seedCircles(): Circle[] {
+  return [
+    {
+      id: "c1",
+      name: "Quiet Mornings",
+      description: "Calm study before noon. Soft accountability.",
+      memberIds: ["me", "f1", "f3", "f5"],
+      joined: true,
+      weeklyGoalMinutes: 300,
+    },
+    {
+      id: "c2",
+      name: "Finals Together",
+      description: "We're all preparing — let's keep each other steady.",
+      memberIds: ["f2", "f4"],
+      joined: false,
+      weeklyGoalMinutes: 420,
+    },
+    {
+      id: "c3",
+      name: "Tiny Steps",
+      description: "5-minute starts welcome. No pressure ever.",
+      memberIds: ["f1", "f2", "f4"],
+      joined: false,
+      weeklyGoalMinutes: 180,
+    },
+  ];
+}
 
 let state: AppState = (() => {
   if (typeof window === "undefined") return seed();
