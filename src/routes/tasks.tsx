@@ -100,7 +100,10 @@ function TaskItem({ a }: { a: { id: string; title: string; subject: string; dueD
           >
             <Checkbox
               checked={s.done}
-              onCheckedChange={() => actions.toggleSubtask(a.id, s.id)}
+              onCheckedChange={() => {
+                const done = actions.toggleSubtask(a.id, s.id);
+                if (done) toast.success("Step complete · +5 XP");
+              }}
               id={s.id}
             />
             <label
