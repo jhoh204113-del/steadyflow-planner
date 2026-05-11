@@ -76,7 +76,7 @@ export type AppState = {
   nudges: Nudge[];
 };
 
-const KEY = "calmstudy.state.v2";
+const KEY = "calmstudy.state.v3";
 
 const seed = (): AppState => {
   const now = new Date();
