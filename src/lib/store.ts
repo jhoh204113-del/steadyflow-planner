@@ -232,6 +232,12 @@ function ensureInit() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
 }
 
+// Initialize immediately on the client (safe — no window means we're in the
+// Worker/SSR and the guard inside ensureInit() is a no-op there).
+if (typeof window !== "undefined") {
+  ensureInit();
+}
+
 const listeners = new Set<() => void>();
 const emit = () => {
   if (typeof window !== "undefined") {
@@ -241,14 +247,8 @@ const emit = () => {
 };
 
 export const subscribe = (l: () => void) => {
-  const wasInitialized = initialized;
   ensureInit();
   listeners.add(l);
-  // If this subscribe call performed first-time init, notify the new listener
-  // on the next tick so React picks up the freshly-seeded state.
-  if (!wasInitialized && initialized && typeof window !== "undefined") {
-    Promise.resolve().then(l);
-  }
   return () => listeners.delete(l);
 };
 export const getState = () => state;
