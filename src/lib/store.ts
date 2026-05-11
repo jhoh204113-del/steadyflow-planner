@@ -236,6 +236,7 @@ function ensureInit() {
 // Worker/SSR and the guard inside ensureInit() is a no-op there).
 if (typeof window !== "undefined") {
   ensureInit();
+  console.log("[store] init", { xp: state.xp, assignments: state.assignments.length });
 }
 
 const listeners = new Set<() => void>();
