@@ -272,7 +272,9 @@ export function useClientStore<T>(selector: (s: AppState) => T, fallback: T): T 
   });
   useEffect(() => {
     ensureInit();
-    setSnapshot({ mounted: true, value: selector(state) });
+    const v = selector(state);
+    console.log("[useClientStore] mount", v);
+    setSnapshot({ mounted: true, value: v });
     const unsub = subscribe(() => setSnapshot({ mounted: true, value: selector(state) }));
     return () => { unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
