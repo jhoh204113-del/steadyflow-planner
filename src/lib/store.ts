@@ -274,7 +274,7 @@ export function useClientStore<T>(selector: (s: AppState) => T, fallback: T): T 
     ensureInit();
     setSnapshot({ mounted: true, value: selector(state) });
     const unsub = subscribe(() => setSnapshot({ mounted: true, value: selector(state) }));
-    return unsub;
+    return () => { unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return snapshot.mounted ? snapshot.value : fallback;
