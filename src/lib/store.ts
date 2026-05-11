@@ -236,7 +236,6 @@ function ensureInit() {
 // Worker/SSR and the guard inside ensureInit() is a no-op there).
 if (typeof window !== "undefined") {
   ensureInit();
-  console.log("[store] init", { xp: state.xp, assignments: state.assignments.length });
 }
 
 const listeners = new Set<() => void>();
@@ -272,9 +271,7 @@ export function useClientStore<T>(selector: (s: AppState) => T, fallback: T): T 
   });
   useEffect(() => {
     ensureInit();
-    const v = selector(state);
-    console.log("[useClientStore] mount", v);
-    setSnapshot({ mounted: true, value: v });
+    setSnapshot({ mounted: true, value: selector(state) });
     const unsub = subscribe(() => setSnapshot({ mounted: true, value: selector(state) }));
     return () => { unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
