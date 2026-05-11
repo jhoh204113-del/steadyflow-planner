@@ -265,7 +265,10 @@ export function useStore<T>(selector: (s: AppState) => T): T {
 // Hydration-safe wrapper for client-only data
 export function useClientStore<T>(selector: (s: AppState) => T, fallback: T): T {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    ensureInit();
+    setMounted(true);
+  }, []);
   const value = useStore(selector);
   return mounted ? value : fallback;
 }
