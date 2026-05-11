@@ -241,8 +241,14 @@ const emit = () => {
 };
 
 export const subscribe = (l: () => void) => {
+  const wasInitialized = initialized;
   ensureInit();
   listeners.add(l);
+  // If this subscribe call performed first-time init, notify the new listener
+  // on the next tick so React picks up the freshly-seeded state.
+  if (!wasInitialized && initialized && typeof window !== "undefined") {
+    Promise.resolve().then(l);
+  }
   return () => listeners.delete(l);
 };
 export const getState = () => state;
