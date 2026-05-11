@@ -88,6 +88,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/523ae5ee-8fc7-4b36-9c64-2998e4aa475b" },
     ],
     links: [
+      { rel: "preconnect", href: "https://cdn.gpteng.co", crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: "https://cdn.gpteng.co" },
       {
         rel: "stylesheet",
         href: appCss,
