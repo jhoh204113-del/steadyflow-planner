@@ -76,7 +76,7 @@ export type AppState = {
   nudges: Nudge[];
 };
 
-const KEY = "calmstudy.state.v2";
+const KEY = "calmstudy.state.v3";
 
 const seed = (): AppState => {
   const now = new Date();
@@ -232,6 +232,12 @@ function ensureInit() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
 }
 
+// Initialize immediately on the client (safe — no window means we're in the
+// Worker/SSR and the guard inside ensureInit() is a no-op there).
+if (typeof window !== "undefined") {
+  ensureInit();
+}
+
 const listeners = new Set<() => void>();
 const emit = () => {
   if (typeof window !== "undefined") {
@@ -255,12 +261,22 @@ export function useStore<T>(selector: (s: AppState) => T): T {
   );
 }
 
-// Hydration-safe wrapper for client-only data
+// Hydration-safe wrapper for client-only data. Bypasses useSyncExternalStore
+// to avoid hydration snapshot mismatches — uses a simple subscription model
+// that always reflects the latest state after the first client render.
 export function useClientStore<T>(selector: (s: AppState) => T, fallback: T): T {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const value = useStore(selector);
-  return mounted ? value : fallback;
+  const [snapshot, setSnapshot] = useState<{ mounted: boolean; value: T }>({
+    mounted: false,
+    value: fallback,
+  });
+  useEffect(() => {
+    ensureInit();
+    setSnapshot({ mounted: true, value: selector(state) });
+    const unsub = subscribe(() => setSnapshot({ mounted: true, value: selector(state) }));
+    return () => { unsub(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return snapshot.mounted ? snapshot.value : fallback;
 }
 
 function todayStr() { return new Date().toDateString(); }
