@@ -200,24 +200,48 @@ function seedCircles(): Circle[] {
   ];
 }
 
-let state: AppState = (() => {
-  if (typeof window === "undefined") return seed();
+// Empty placeholder used during SSR — real state is initialized lazily on the
+// client to avoid running crypto.randomUUID() / localStorage in global scope.
+const EMPTY_STATE: AppState = {
+  assignments: [],
+  sessions: [],
+  xp: 0,
+  streakDays: 0,
+  lastActiveDate: null,
+  quests: [],
+  questsRolledAt: null,
+  friends: [],
+  circles: [],
+  nudges: [],
+};
+
+let state: AppState = EMPTY_STATE;
+let initialized = false;
+
+function ensureInit() {
+  if (initialized || typeof window === "undefined") return;
+  initialized = true;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as AppState;
+    if (raw) {
+      state = JSON.parse(raw) as AppState;
+      return;
+    }
   } catch {}
-  const s = seed();
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
-  return s;
-})();
+  state = seed();
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+}
 
 const listeners = new Set<() => void>();
 const emit = () => {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  }
   listeners.forEach((l) => l());
 };
 
 export const subscribe = (l: () => void) => {
+  ensureInit();
   listeners.add(l);
   return () => listeners.delete(l);
 };
@@ -227,7 +251,7 @@ export function useStore<T>(selector: (s: AppState) => T): T {
   return useSyncExternalStore(
     subscribe,
     () => selector(state),
-    () => selector(state),
+    () => selector(EMPTY_STATE),
   );
 }
 
